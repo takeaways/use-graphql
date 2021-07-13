@@ -1,6 +1,6 @@
-import React from "react";
+import React from 'react';
 
-import MsgList from "../components/msgList";
+import MsgList from '../components/msgList';
 
 const Home = () => {
   return (
