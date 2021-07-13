@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 
-const MsgInput = ({ mutate }) => {
+const MsgInput = ({ mutate, text = '' }) => {
   const textRef = useRef(null);
   const formRef = useRef(null);
 
@@ -17,7 +17,7 @@ const MsgInput = ({ mutate }) => {
 
   return (
     <form ref={formRef} className="messages__input" onSubmit={handleSubmit}>
-      <textarea ref={textRef} placeholder="Write something yours"></textarea>
+      <textarea ref={textRef} placeholder="Write something yours" defaultValue={text}></textarea>
       <button type="submit">GO</button>
     </form>
   );
@@ -25,6 +25,7 @@ const MsgInput = ({ mutate }) => {
 
 MsgInput.propTypes = {
   mutate: PropTypes.func,
+  text: PropTypes.string,
 };
 
 export default MsgInput;
