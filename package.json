@@ -1,0 +1,26 @@
+{
+  "name": "use-graphql",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "client": "yarn workspace client start",
+    "server": "yarn workspace server start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/takeaways/use-graphql.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/takeaways/use-graphql/issues"
+  },
+  "homepage": "https://github.com/takeaways/use-graphql#readme",
+  "description": ""
+}
