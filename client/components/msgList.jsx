@@ -14,6 +14,7 @@ const temp = Array(50)
     text: `${50 - index} mock text`,
   }));
 
+console.log(JSON.stringify(temp));
 const MsgList = () => {
   const [msgs, setMsgs] = useState(temp);
   const [editingId, setEditingId] = useState(null);
