@@ -14,7 +14,7 @@ const msgs = Array(50)
 
 const MsgList = () => {
   return (
-    <ul>
+    <ul className="messages">
       {msgs.map((msg) => (
         <MsgItem key={msg.id} {...msg} />
       ))}

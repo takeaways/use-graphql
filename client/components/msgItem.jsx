@@ -1,10 +1,11 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const MsgItem = ({ userId, timestamp, text }) => {
+const MsgItem = ({ id, userId, timestamp, text }) => {
   return (
-    <li className="message__item">
+    <li className="messages__item">
       <h3>
+        {id}
         {userId}
         <sub>
           {new Date(timestamp).toLocaleString("ko-KR", {
@@ -23,9 +24,10 @@ const MsgItem = ({ userId, timestamp, text }) => {
 };
 
 MsgItem.propTypes = {
-  userId: PropTypes.string,
-  timestamp: PropTypes.string,
+  id: PropTypes.number,
   text: PropTypes.string,
+  timestamp: PropTypes.string,
+  userId: PropTypes.string,
 };
 
 export default MsgItem;

@@ -1,4 +1,5 @@
 import React from "react";
+
 import MsgList from "../components/msgList";
 
 const Home = () => {
