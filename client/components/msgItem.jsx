@@ -30,7 +30,7 @@ const MsgItem = ({
           })}
         </sub>
       </h3>
-      {isEditing ? <MsgInput mutate={onUpdate.bind(null, id)} text={text} /> : text}
+      {isEditing ? <MsgInput mutate={onUpdate} text={text} id={id} /> : text}
       {isMine && (
         <div className="messages__buttons">
           <button onClick={startEdit.bind(null, id)}>Fix</button>

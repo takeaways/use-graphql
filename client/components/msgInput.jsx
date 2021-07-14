@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 
-const MsgInput = ({ mutate, text = '' }) => {
+const MsgInput = ({ mutate, text = '', id = '' }) => {
   const textRef = useRef(null);
   const formRef = useRef(null);
 
@@ -10,7 +10,7 @@ const MsgInput = ({ mutate, text = '' }) => {
     e.stopPropagation();
 
     const text = textRef.current.value;
-    mutate(text);
+    mutate({ text, id });
 
     formRef.current.reset();
   };
@@ -24,6 +24,7 @@ const MsgInput = ({ mutate, text = '' }) => {
 };
 
 MsgInput.propTypes = {
+  id: PropTypes.string,
   mutate: PropTypes.func,
   text: PropTypes.string,
 };

@@ -10,7 +10,7 @@ import MsgItem from './msgItem';
 // import useInfiniteScroll from '../hooks/useInfiniteScroll';
 
 import { fetcher, QueryKeys } from '../utils/queryClient';
-import { CREATE_MESSAGE, GET_MESSAGES } from '../graphql/message';
+import { CREATE_MESSAGE, DELETE_MESSAGE, GET_MESSAGES, UPDATE_MESSAGE } from '../graphql/message';
 
 const MsgList = ({ smsgs = [], users }) => {
   const {
@@ -43,53 +43,56 @@ const MsgList = ({ smsgs = [], users }) => {
     },
   );
 
+  const { mutate: handleUpdateMgs } = useMutation(
+    ({ id, text }) => fetcher(UPDATE_MESSAGE, { text, id, userId }),
+    {
+      onSuccess: ({ updateMessage }) => {
+        client.setQueryData(QueryKeys.MESSAGES, old => {
+          const targetIndex = old.messages.findIndex(msg => msg.id === updateMessage.id);
+          if (targetIndex < 0) return old;
+          const tempMsgs = [...old.messages];
+          tempMsgs.splice(targetIndex, 1, updateMessage);
+          startEdit(null);
+          return { messages: tempMsgs };
+        });
+      },
+    },
+  );
+
+  const { mutate: handleDeleteMsg } = useMutation(id => fetcher(DELETE_MESSAGE, { id, userId }), {
+    onSuccess: ({ deleteMessage }) => {
+      client.setQueryData(QueryKeys.MESSAGES, old => {
+        const targetIndex = old.messages.findIndex(msg => msg.id === deleteMessage);
+        if (targetIndex < 0) {
+          return old;
+        }
+        const tempMsgs = [...msgs];
+        tempMsgs.splice(targetIndex, 1);
+        return { messages: tempMsgs };
+      });
+    },
+  });
+
   useEffect(() => {
-    setMsgs(data?.messages || []);
+    if (!data?.messages) return;
+    setMsgs(data.messages);
   }, [data?.messages]);
 
-  // const handleCreateMsg = async text => {
-  //   const newMsg = await fetcher('post', '/messages', { text, userId });
-  //   if (!newMsg) throw new Error('went something wrong');
-  //   setMsgs(msgs => [newMsg, ...msgs]);
+  // const handleDeleteMsg = async id => {
+  //   const deletedId = await fetcher('delete', `/messages/${id}`, { params: { userId } });
+  //   if (!deletedId) throw new Error('went something wrong');
+
+  //   setMsgs(msgs => {
+  //     const targetIndex = msgs.findIndex(msg => msg.id === id);
+  //     if (targetIndex < 0) {
+  //       return msgs;
+  //     }
+  //     const tempMsgs = [...msgs];
+  //     tempMsgs.splice(targetIndex, 1);
+
+  //     return tempMsgs;
+  //   });
   // };
-
-  const handleUpdateMgs = async (id, text) => {
-    const newMsg = await fetcher('put', `/messages/${id}`, { text, userId });
-    if (!newMsg) throw new Error('went something wrong');
-
-    setMsgs(msgs => {
-      const targetIndex = msgs.findIndex(msg => msg.id === id);
-
-      if (targetIndex < 0) {
-        return msgs;
-      }
-
-      const tempMsgs = [...msgs];
-      tempMsgs.splice(targetIndex, 1, {
-        ...tempMsgs[targetIndex],
-        text,
-      });
-
-      return tempMsgs;
-    });
-    startEdit(null);
-  };
-
-  const handleDeleteMsg = async id => {
-    const deletedId = await fetcher('delete', `/messages/${id}`, { params: { userId } });
-    if (!deletedId) throw new Error('went something wrong');
-
-    setMsgs(msgs => {
-      const targetIndex = msgs.findIndex(msg => msg.id === id);
-      if (targetIndex < 0) {
-        return msgs;
-      }
-      const tempMsgs = [...msgs];
-      tempMsgs.splice(targetIndex, 1);
-
-      return tempMsgs;
-    });
-  };
 
   // const getMessages = async () => {
   //   const messages = await fetcher('get', '/messages', {
