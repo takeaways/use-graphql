@@ -3,7 +3,10 @@ import React from 'react';
 
 import MsgList from '../components/msgList';
 
-import fetcher from '../utils/fetcher';
+import { fetcher } from '../utils/queryClient';
+
+import { GET_MESSAGES } from '../graphql/message';
+import { GET_USERS } from '../graphql/user';
 
 const Home = ({ smsgs, users }) => {
   return (
@@ -19,8 +22,9 @@ Home.propTypes = {
 };
 
 export const getServerSideProps = async () => {
-  const smsgs = await fetcher('get', '/messages');
-  const users = await fetcher('get', '/users');
+  const { users } = await fetcher(GET_USERS);
+  const { messages: smsgs } = await fetcher(GET_MESSAGES);
+
   return {
     props: { smsgs, users },
   };
