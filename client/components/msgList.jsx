@@ -1,4 +1,3 @@
-/* eslint-disable no-unreachable */
 import PropTypes from 'prop-types';
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
@@ -11,6 +10,15 @@ import useInfiniteScroll from '../hooks/useInfiniteScroll';
 
 import { fetcher, QueryKeys } from '../utils/queryClient';
 import { CREATE_MESSAGE, DELETE_MESSAGE, GET_MESSAGES, UPDATE_MESSAGE } from '../graphql/message';
+
+const findTargetMsgIndex = (pages, id) => {
+  let messageIndex = -1;
+  const pageIndex = pages.findIndex(({ messages }) => {
+    messageIndex = messages.findIndex(m => m.id === id);
+    return messageIndex > -1;
+  });
+  return { pageIndex, messageIndex };
+};
 
 const MsgList = ({ smsgs = [], users }) => {
   const {
@@ -37,15 +45,14 @@ const MsgList = ({ smsgs = [], users }) => {
     },
   );
 
-  console.log(data);
-
   const { mutate: handleCreateMsg } = useMutation(
     ({ text }) => fetcher(CREATE_MESSAGE, { text, userId }),
     {
       onSuccess: ({ createMessage }) => {
         client.setQueryData(QueryKeys.MESSAGES, old => {
           return {
-            messages: [createMessage, ...old.messages],
+            pageParam: old.pageParam,
+            pages: [{ messages: [createMessage, ...old.pages[0].messages] }, ...old.pages.slice(1)],
           };
         });
       },
@@ -57,12 +64,17 @@ const MsgList = ({ smsgs = [], users }) => {
     {
       onSuccess: ({ updateMessage }) => {
         client.setQueryData(QueryKeys.MESSAGES, old => {
-          const targetIndex = old.messages.findIndex(msg => msg.id === updateMessage.id);
-          if (targetIndex < 0) return old;
-          const tempMsgs = [...old.messages];
-          tempMsgs.splice(targetIndex, 1, updateMessage);
+          const { pageIndex, messageIndex } = findTargetMsgIndex(old.pages, updateMessage.id);
+          if (pageIndex < 0 || messageIndex < 0) return old;
+
+          const newPages = [...old.pages];
+          newPages[pageIndex] = { messages: [...newPages[pageIndex].messages] };
+          newPages[pageIndex].messages.splice(messageIndex, 1, updateMessage);
           startEdit(null);
-          return { messages: tempMsgs };
+          return {
+            ...old,
+            pages: newPages,
+          };
         });
       },
     },
@@ -71,13 +83,17 @@ const MsgList = ({ smsgs = [], users }) => {
   const { mutate: handleDeleteMsg } = useMutation(id => fetcher(DELETE_MESSAGE, { id, userId }), {
     onSuccess: ({ deleteMessage }) => {
       client.setQueryData(QueryKeys.MESSAGES, old => {
-        const targetIndex = old.messages.findIndex(msg => msg.id === deleteMessage);
-        if (targetIndex < 0) {
-          return old;
-        }
-        const tempMsgs = [...msgs];
-        tempMsgs.splice(targetIndex, 1);
-        return { messages: tempMsgs };
+        const { pageIndex, messageIndex } = findTargetMsgIndex(old.pages, deleteMessage);
+        if (pageIndex < 0 || messageIndex < 0) return old;
+
+        const newPages = [...old.pages];
+        newPages[pageIndex] = { messages: [...newPages[pageIndex].messages] };
+        newPages[pageIndex].messages.splice(messageIndex, 1);
+        startEdit(null);
+        return {
+          ...old,
+          pages: newPages,
+        };
       });
     },
   });
@@ -93,6 +109,11 @@ const MsgList = ({ smsgs = [], users }) => {
       fetchNextPage();
     }
   }, [intersecting, hasNextPage]);
+
+  if (isError) {
+    console.log(error);
+    return null;
+  }
 
   return (
     <>
