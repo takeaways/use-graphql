@@ -2,12 +2,23 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import MsgInput from './msgInput';
 
-const MsgItem = ({ id, userId, timestamp, text, onUpdate, isEditing, startEdit, onDelete }) => {
+const MsgItem = ({
+  id,
+  userId,
+  timestamp,
+  text,
+  onUpdate,
+  isEditing,
+  startEdit,
+  onDelete,
+  isMine,
+  user,
+}) => {
   return (
     <li className="messages__item">
       <h3>
-        {id}
         {userId}
+        {user.nickname}
         <sub>
           {new Date(timestamp).toLocaleString('ko-KR', {
             year: 'numeric',
@@ -20,27 +31,26 @@ const MsgItem = ({ id, userId, timestamp, text, onUpdate, isEditing, startEdit, 
         </sub>
       </h3>
       {isEditing ? <MsgInput mutate={onUpdate.bind(null, id)} text={text} /> : text}
-
-      <div className="messages__buttons">
-        <button onClick={startEdit.bind(null, id)}>Fix</button>
-        <button onClick={onDelete}>Delete</button>
-      </div>
+      {isMine && (
+        <div className="messages__buttons">
+          <button onClick={startEdit.bind(null, id)}>Fix</button>
+          <button onClick={onDelete}>Delete</button>
+        </div>
+      )}
     </li>
   );
 };
 
 MsgItem.propTypes = {
-  id: PropTypes.number,
+  id: PropTypes.string,
   isEditing: PropTypes.bool,
+  isMine: PropTypes.any,
   onDelete: PropTypes.any,
-  onUpdate: PropTypes.shape({
-    bind: PropTypes.func,
-  }),
-  startEdit: PropTypes.shape({
-    bind: PropTypes.func,
-  }),
+  onUpdate: PropTypes.any,
+  startEdit: PropTypes.any,
   text: PropTypes.string,
   timestamp: PropTypes.number,
+  user: PropTypes.any,
   userId: PropTypes.string,
 };
 

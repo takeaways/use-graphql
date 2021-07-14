@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "client": "yarn workspace client start",
-    "server": "yarn workspace server start"
+    "server": "yarn workspace server start",
+    "dev": "npm-run-all --parallel client server"
   },
   "repository": {
     "type": "git",
@@ -22,5 +23,8 @@
     "url": "https://github.com/takeaways/use-graphql/issues"
   },
   "homepage": "https://github.com/takeaways/use-graphql#readme",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
 }
