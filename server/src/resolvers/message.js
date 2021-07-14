@@ -57,6 +57,9 @@ const messageResolver = {
       return id;
     },
   },
+  Message: {
+    user: (msg, args, { db }) => db.users[msg.userId],
+  },
 };
 
 module.exports = messageResolver;

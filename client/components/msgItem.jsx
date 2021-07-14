@@ -4,7 +4,6 @@ import MsgInput from './msgInput';
 
 const MsgItem = ({
   id,
-  userId,
   timestamp,
   text,
   onUpdate,
@@ -17,7 +16,7 @@ const MsgItem = ({
   return (
     <li className="messages__item">
       <h3>
-        {userId}
+        {user?.id}
         {user?.nickname}
         <sub>
           {new Date(timestamp).toLocaleString('ko-KR', {

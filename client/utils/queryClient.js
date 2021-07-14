@@ -12,3 +12,17 @@ export const QueryKeys = {
   USERS: 'USERS',
   USER: 'USER',
 };
+
+export const findTargetMsgIndex = (pages, id) => {
+  let messageIndex = -1;
+  const pageIndex = pages.findIndex(({ messages }) => {
+    messageIndex = messages.findIndex(m => m.id === id);
+    return messageIndex > -1;
+  });
+  return { pageIndex, messageIndex };
+};
+
+export const getNewMessages = old => ({
+  ...old,
+  pages: old.pages.map(({ messages }) => ({ messages: [...messages] })),
+});

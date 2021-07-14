@@ -8,19 +8,10 @@ import MsgItem from './msgItem';
 
 import useInfiniteScroll from '../hooks/useInfiniteScroll';
 
-import { fetcher, QueryKeys } from '../utils/queryClient';
+import { fetcher, QueryKeys, findTargetMsgIndex, getNewMessages } from '../utils/queryClient';
 import { CREATE_MESSAGE, DELETE_MESSAGE, GET_MESSAGES, UPDATE_MESSAGE } from '../graphql/message';
 
-const findTargetMsgIndex = (pages, id) => {
-  let messageIndex = -1;
-  const pageIndex = pages.findIndex(({ messages }) => {
-    messageIndex = messages.findIndex(m => m.id === id);
-    return messageIndex > -1;
-  });
-  return { pageIndex, messageIndex };
-};
-
-const MsgList = ({ smsgs = [], users }) => {
+const MsgList = ({ smsgs = [] }) => {
   const {
     query: { userId = '' },
   } = useRouter();
@@ -67,14 +58,10 @@ const MsgList = ({ smsgs = [], users }) => {
           const { pageIndex, messageIndex } = findTargetMsgIndex(old.pages, updateMessage.id);
           if (pageIndex < 0 || messageIndex < 0) return old;
 
-          const newPages = [...old.pages];
-          newPages[pageIndex] = { messages: [...newPages[pageIndex].messages] };
-          newPages[pageIndex].messages.splice(messageIndex, 1, updateMessage);
+          const newPages = getNewMessages(old);
+          newPages.pages[pageIndex].messages.splice(messageIndex, 1, updateMessage);
           startEdit(null);
-          return {
-            ...old,
-            pages: newPages,
-          };
+          return newPages;
         });
       },
     },
@@ -86,14 +73,10 @@ const MsgList = ({ smsgs = [], users }) => {
         const { pageIndex, messageIndex } = findTargetMsgIndex(old.pages, deleteMessage);
         if (pageIndex < 0 || messageIndex < 0) return old;
 
-        const newPages = [...old.pages];
-        newPages[pageIndex] = { messages: [...newPages[pageIndex].messages] };
-        newPages[pageIndex].messages.splice(messageIndex, 1);
+        const newPages = getNewMessages(old);
+        newPages.pages[pageIndex].messages.splice(messageIndex, 1);
         startEdit(null);
-        return {
-          ...old,
-          pages: newPages,
-        };
+        return newPages;
       });
     },
   });
@@ -127,8 +110,7 @@ const MsgList = ({ smsgs = [], users }) => {
             onDelete={handleDeleteMsg.bind(null, msg.id)}
             startEdit={startEdit}
             isEditing={editingId === msg.id}
-            isMine={userId === msg.userId}
-            user={users.find(u => u.id === msg.userId)}
+            isMine={userId === msg.user?.id}
           />
         ))}
         <div ref={fetchMoreEl} />
