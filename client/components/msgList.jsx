@@ -2,12 +2,12 @@
 import PropTypes from 'prop-types';
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from 'react-query';
 
 import MsgInput from './msgInput';
 import MsgItem from './msgItem';
 
-// import useInfiniteScroll from '../hooks/useInfiniteScroll';
+import useInfiniteScroll from '../hooks/useInfiniteScroll';
 
 import { fetcher, QueryKeys } from '../utils/queryClient';
 import { CREATE_MESSAGE, DELETE_MESSAGE, GET_MESSAGES, UPDATE_MESSAGE } from '../graphql/message';
@@ -22,13 +22,22 @@ const MsgList = ({ smsgs = [], users }) => {
   const [msgs, setMsgs] = useState(smsgs);
   const [editingId, setEditingId] = useState(null);
 
-  // const [hasNext, setHasNext] = useState(true);
   const fetchMoreEl = useRef(null);
-  // const intersecting = useInfiniteScroll(fetchMoreEl);
+  const intersecting = useInfiniteScroll(fetchMoreEl);
 
   const startEdit = id => setEditingId(id);
 
-  const { data, error, isError } = useQuery(QueryKeys.MESSAGES, fetcher.bind(null, GET_MESSAGES));
+  const { data, error, isError, fetchNextPage, hasNextPage } = useInfiniteQuery(
+    QueryKeys.MESSAGES,
+    ({ pageParam = '' }) => fetcher(GET_MESSAGES, { cursor: pageParam }),
+    {
+      getNextPageParam: ({ messages }) => {
+        return messages?.[messages.length - 1]?.id;
+      },
+    },
+  );
+
+  console.log(data);
 
   const { mutate: handleCreateMsg } = useMutation(
     ({ text }) => fetcher(CREATE_MESSAGE, { text, userId }),
@@ -74,40 +83,16 @@ const MsgList = ({ smsgs = [], users }) => {
   });
 
   useEffect(() => {
-    if (!data?.messages) return;
-    setMsgs(data.messages);
-  }, [data?.messages]);
+    if (!data?.pages) return;
+    const merged = data.pages.flatMap(d => d.messages);
+    setMsgs(merged);
+  }, [data?.pages]);
 
-  // const handleDeleteMsg = async id => {
-  //   const deletedId = await fetcher('delete', `/messages/${id}`, { params: { userId } });
-  //   if (!deletedId) throw new Error('went something wrong');
-
-  //   setMsgs(msgs => {
-  //     const targetIndex = msgs.findIndex(msg => msg.id === id);
-  //     if (targetIndex < 0) {
-  //       return msgs;
-  //     }
-  //     const tempMsgs = [...msgs];
-  //     tempMsgs.splice(targetIndex, 1);
-
-  //     return tempMsgs;
-  //   });
-  // };
-
-  // const getMessages = async () => {
-  //   const messages = await fetcher('get', '/messages', {
-  //     params: { cursor: msgs[msgs.length - 1]?.id || '' },
-  //   });
-  //   if (messages.length === 0) setHasNext(false);
-
-  //   setMsgs(prev => [...prev, ...messages]);
-  // };
-
-  // useEffect(() => {
-  //   if (hasNext && intersecting) {
-  //     getMessages();
-  //   }
-  // }, [intersecting]);
+  useEffect(() => {
+    if (hasNextPage && intersecting) {
+      fetchNextPage();
+    }
+  }, [intersecting, hasNextPage]);
 
   return (
     <>

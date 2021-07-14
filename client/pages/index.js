@@ -22,8 +22,10 @@ Home.propTypes = {
 };
 
 export const getServerSideProps = async () => {
-  const { users } = await fetcher(GET_USERS);
-  const { messages: smsgs } = await fetcher(GET_MESSAGES);
+  const [{ users }, { messages: smsgs }] = await Promise.all([
+    fetcher(GET_USERS),
+    fetcher(GET_MESSAGES),
+  ]);
 
   return {
     props: { smsgs, users },
